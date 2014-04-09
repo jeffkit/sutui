@@ -45,7 +45,7 @@ class Sutui(object):
 
     def subscribe(self, user_id, channel_id, unsubscribe=False):
         data = {'user_id': user_id, 'channel_id': channel_id,
-                'unsubscribe': unsubscribe}
+                'unsubscribe': 1 if unsubscribe else 0}
         rsp = requests.post(self._complete_url('/subscription/'),
                             data=data)
         return self._process_response(rsp)
