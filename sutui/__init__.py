@@ -3,9 +3,9 @@
 import requests
 import time
 from hashlib import sha1
-import simplejson
+import json
 
-VERSION = 0.2
+VERSION = 0.3
 
 
 class Sutui(object):
@@ -50,6 +50,10 @@ class Sutui(object):
                             data=data)
         return self._process_response(rsp)
 
+    def unsubscribe(self, sid):
+        rsp = requests.delete(self._complete_url('/subscription/%s/' % sid))
+        return self._process_response(rsp)
+
     def subscriptions(self, user_id):
         rsp = requests.get(self._complete_url('/subscription/'),
                            params={'user_id': user_id})
@@ -59,10 +63,14 @@ class Sutui(object):
         rsp = requests.get(self._complete_url('/channel/'))
         return self._process_response(rsp)
 
-    def create_channel(self, name, identity=None):
-        data = {'name': name, 'identity': identity}
+    def create_channel(self, name):
+        data = {'name': name}
         rsp = requests.post(self._complete_url('/channel/'),
                             data=data)
+        return self._process_response(rsp)
+
+    def remove_channel(self, channel_id):
+        rsp = requests.delete(self._complete_url('/channel/%s/' % channel_id))
         return self._process_response(rsp)
 
     def notify(self, channel_id, msg_type, message):
@@ -70,6 +78,33 @@ class Sutui(object):
                 'content': message}
         headers = {'Content-type': 'application/json'}
         rsp = requests.post(self._complete_url('/message/'),
-                            data=simplejson.dumps(data),
+                            data=json.dumps(data),
                             headers=headers)
+        return self._process_response(rsp)
+
+    def commands(self, channel_id=None):
+        params = {}
+        if channel_id:
+            params['channel'] = channel_id
+        rsp = requests.get(self._complete_url('/command/'),
+                           params=params)
+        return self._process_response(rsp)
+
+    def create_command(self, channel_id, command, url, description=None,
+                       override=True):
+        data = {'channel_id': channel_id, 'command': command, 'url': url,
+                'description': description, 'override': override}
+        rsp = requests.post(self._complete_url('/command/'), data=data)
+        return self._process_response(rsp)
+
+    def update_command(self, command_id, channel_id=None, command=None,
+                       url=None, description=None):
+        data = {'channel_id': channel_id, 'command': command, 'url': url,
+                'description': description}
+        rsp = requests.put(self._complete_url('/command/%s/' % command_id),
+                           data=data)
+        return self._process_response(rsp)
+
+    def remove_command(self, command_id):
+        rsp = requests.delete(self._complete_url('/command/%s/' % command_id))
         return self._process_response(rsp)
